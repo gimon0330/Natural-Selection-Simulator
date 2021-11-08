@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 pygame.init()
 
@@ -21,6 +22,7 @@ class Predetor(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.pos = pygame.Vector2(800, 600)
         self.speed = pygame.Vector2(3, 3)
+        self.eaten = 0
 
     def update(self):
         self.speed.rotate_ip(random.gauss(0, 1) * 10)
@@ -39,6 +41,9 @@ class Predetor(pygame.sprite.Sprite):
         elif self.rect.bottom > SCREEN_HEIGHT:
             self.speed.y *= -1
             self.rect.bottom = SCREEN_HEIGHT
+    
+    def eat(self):
+        self.eaten += 1
 
 
 class Prey(pygame.sprite.Sprite):
@@ -83,23 +88,37 @@ for i in range(20):
     prey_sprites.add(prey)
     all_sprites.add(prey)
 
+day = 1
+
 while True:
-    all_sprites.update()
+    print(f"day {day} ======")
 
-    crash = pygame.sprite.groupcollide(prey_sprites, predetor_sprites, True, False)
+    ############ 하루동안 (낮)
 
-    if crash:
-        print("Crash")
+    while time.time() < 60:
+        all_sprites.update()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
+        crash = pygame.sprite.groupcollide(prey_sprites, predetor_sprites, True, False)
 
-    screen.fill((255,255,255))
+        for pred, prey in crash.items():
+                pred.eat()
+                prey[0].kill()
 
-    all_sprites.draw(screen)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
 
-    
+        screen.fill((255,255,255))
 
-    clock.tick(60)
-    pygame.display.update()
+        all_sprites.draw(screen)
+
+        clock.tick(60)
+        pygame.display.update()
+
+    ############### 하루가 지나고 (밤)
+
+    reproduced = 0
+
+    for pred in predetor_sprites:
+        if pred.eaten >= 2:
+            reproduced += 1
