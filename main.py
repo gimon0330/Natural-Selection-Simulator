@@ -49,11 +49,26 @@ class Predetor(pygame.sprite.Sprite):
 class Prey(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((30, 30))
+        self.size_x = random.uniform(5.0, 45.0)
+        self.size_y = random.uniform(5.0, 45.0)
+        self.image = pygame.Surface((self.size_x, self.size_y))
         self.image.fill((0,0,0))
-        self.pos = pygame.Vector2(100, 100)
+
+        self.posx = 100 + random.uniform(50.0,-50.0)
+        self.posy = 100 + random.uniform(50.0,-50.0)
+        self.pos = pygame.Vector2((self.posx, self.posy))
+        
         self.rect = self.image.get_rect()
-        self.speed = pygame.Vector2(2, 2)
+        self.speedsc = random.uniform(0.2, 6.0)
+        self.speed = pygame.Vector2(self.speedsc, self.speedsc)
+
+    def draw(self):
+        self.image = pygame.Surface((self.size_x, self.size_y))
+        
+        pygame.draw.rect(screen, (0, 0, 0), (self.posx, self.posy, self.size_x, self.size_y))
+
+        self.rect = self.image.get_rect()
+        
 
     def update(self):
         self.speed.rotate_ip(random.gauss(0, 1) * 10)
@@ -83,26 +98,28 @@ for i in range(6):
     predetor_sprites.add(predetor)
     all_sprites.add(predetor)
 
-for i in range(20):
+for i in range(30):
     prey = Prey()
     prey_sprites.add(prey)
     all_sprites.add(prey)
 
 day = 1
+day_speed = 5
 
 while True:
     print(f"day {day} ======")
 
     ############ 하루동안 (낮)
+    count = time.time() + day_speed
 
-    while time.time() < 60:
+    while time.time() < count:
         all_sprites.update()
 
         crash = pygame.sprite.groupcollide(prey_sprites, predetor_sprites, True, False)
 
-        for pred, prey in crash.items():
-                pred.eat()
-                prey[0].kill()
+        for prey, pred in crash.items():
+            pred[0].eat()
+            prey.kill()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -117,8 +134,17 @@ while True:
 
     ############### 하루가 지나고 (밤)
 
-    reproduced = 0
+    day+=1
 
-    for pred in predetor_sprites:
-        if pred.eaten >= 2:
-            reproduced += 1
+    for preys in prey_sprites:
+        new_prey = Prey()
+        new_prey.size_x = preys.size_x + random.uniform(-0.5,0.5)
+        new_prey.size_y = preys.size_y + random.uniform(-0.5,0.5)
+        new_prey.speedsc = preys.speedsc + random.uniform(-0.5,0.5)
+        
+        new_prey.posx = preys.pos.x
+        new_prey.posy = preys.pos.y
+
+        new_prey.draw()
+        prey_sprites.add(new_prey)
+        all_sprites.add(new_prey)
