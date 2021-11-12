@@ -8,7 +8,7 @@ SCREEN_WIDTH =  1080
 SCREEN_HEIGHT =  720
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("이미지 불러오기")
+pygame.display.set_caption("BSIS 10기 Natural Selection Simulator")
 clock = pygame.time.Clock()
 
 screen.fill((255,255,255))
