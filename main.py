@@ -1,6 +1,4 @@
-import pygame
-import random
-import time
+import pygame, random, time, sys
 
 pygame.init()
 
@@ -8,7 +6,7 @@ SCREEN_WIDTH =  1080
 SCREEN_HEIGHT =  720
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("BSIS 10기 Natural Selection Simulator")
+pygame.display.set_caption("이미지 불러오기")
 clock = pygame.time.Clock()
 
 screen.fill((255,255,255))
@@ -17,11 +15,11 @@ screen.fill((255,255,255))
 class Predetor(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((40, 40))
+        self.image = pygame.Surface((30, 30))
         self.image.fill((255,0,0))
         self.rect = self.image.get_rect()
         self.pos = pygame.Vector2(800, 600)
-        self.speed = pygame.Vector2(3, 3)
+        self.speed = pygame.Vector2(3.2, 3.2)
         self.eaten = 0
 
     def update(self):
@@ -49,8 +47,8 @@ class Predetor(pygame.sprite.Sprite):
 class Prey(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.size_x = random.uniform(5.0, 45.0)
-        self.size_y = random.uniform(5.0, 45.0)
+        self.size_x = random.uniform(3.00, 50.00)
+        self.size_y = random.uniform(3.00, 50.00)
         self.image = pygame.Surface((self.size_x, self.size_y))
         self.image.fill((0,0,0))
 
@@ -63,15 +61,17 @@ class Prey(pygame.sprite.Sprite):
         self.speed = pygame.Vector2(self.speedsc, self.speedsc)
 
     def draw(self):
+        if self.size_x <= 0: self.size_x = 0.1
+        if self.size_y <= 0: self.size_y = 0.1
         self.image = pygame.Surface((self.size_x, self.size_y))
         
-        pygame.draw.rect(screen, (0, 0, 0), (self.posx, self.posy, self.size_x, self.size_y))
+        pygame.draw.rect(screen, (0, 0, 0), (self.rect.left, self.rect.right, self.size_x, self.size_y))
 
         self.rect = self.image.get_rect()
         
 
     def update(self):
-        self.speed.rotate_ip(random.gauss(0, 1) * 10)
+        self.speed.rotate_ip(random.gauss(0,1)*5)
         self.pos += self.speed
         self.rect.center = self.pos
 
@@ -98,13 +98,13 @@ for i in range(6):
     predetor_sprites.add(predetor)
     all_sprites.add(predetor)
 
-for i in range(30):
+for i in range(60):
     prey = Prey()
     prey_sprites.add(prey)
     all_sprites.add(prey)
 
 day = 1
-day_speed = 5
+day_speed = 8
 
 while True:
     print(f"day {day} ======")
@@ -138,13 +138,40 @@ while True:
 
     for preys in prey_sprites:
         new_prey = Prey()
-        new_prey.size_x = preys.size_x + random.uniform(-0.5,0.5)
-        new_prey.size_y = preys.size_y + random.uniform(-0.5,0.5)
-        new_prey.speedsc = preys.speedsc + random.uniform(-0.5,0.5)
-        
-        new_prey.posx = preys.pos.x
-        new_prey.posy = preys.pos.y
 
-        new_prey.draw()
+        if random.randint(0, 100) < 5: #돌연변이 발생
+            new_prey.size_x = preys.size_x + random.uniform(-15.0,15.0)
+            new_prey.size_y = preys.size_y + random.uniform(-15.0,15.0)
+            new_prey.speedsc = preys.speedsc + random.uniform(-5.0,5.0)
+        
+        else: 
+            new_prey.size_x = preys.size_x + random.uniform(-3.0,3.0)
+            new_prey.size_y = preys.size_y + random.uniform(-3.0,3.0)
+            new_prey.speedsc = preys.speedsc + random.uniform(-1.0,1.0)
+        
+        new_prey.pos = preys.rect.center
+
         prey_sprites.add(new_prey)
         all_sprites.add(new_prey)
+
+    for predetors in predetor_sprites:
+        if predetors.eaten < 5:
+            predetors.kill()
+        if predetors.eaten > 15:
+            new_predetor = Predetor()
+            new_predetor.pos = predetors.rect.center
+            
+            predetor_sprites.add(new_predetor)
+            all_sprites.add(new_predetor)
+
+        predetors.eaten = 0
+
+    if not predetor_sprites:
+        print("All predetors dead")
+        pygame.quit()
+        sys.exit()
+
+    if not prey_sprites:
+        print("All preys dead")
+        pygame.quit()
+        sys.exit()
